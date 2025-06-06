@@ -2,7 +2,9 @@ const fs = require("fs");
 const path = require("path");
 const { Client, GatewayIntentBits, Partials, EmbedBuilder, REST, Routes, SlashCommandBuilder } = require("discord.js");
 const axios = require("axios");
-const { botToken, fetchIntervalMs, footerText, prefix } = require("./config");
+const { botToken, guildId, prefix } = require("./config");
+
+const footerText = "Created by Sunnel";
 
 const registeredUsersPath = path.join(__dirname, "registeredUsers.json");
 let registeredUsers = new Set();
@@ -38,7 +40,6 @@ const client = new Client({
   partials: [Partials.Channel],
 });
 
-const footerText = "Created by Sunnel";
 const activeSessions = new Map();
 const fetchIntervalMs = 10 * 1000; // 10 seconds
 
@@ -157,6 +158,33 @@ async function createStockEmbed() {
   }
 }
 
+function startTracking(userId) {
+  if (activeSessions.has(userId)) return;
+  
+  const interval = setInterval(async () => {
+    try {
+      const user = await client.users.fetch(userId);
+      if (!user) {
+        clearInterval(interval);
+        activeSessions.delete(userId);
+        return;
+      }
+      const embed = await createStockEmbed();
+      await user.send({ embeds: [embed] });
+    } catch (err) {
+      console.error(`Failed to send update to user ${userId}:`, err);
+    }
+  }, fetchIntervalMs);
+
+  activeSessions.set(userId, interval);
+}
+
+function stopTracking(userId) {
+  if (!activeSessions.has(userId)) return;
+  clearInterval(activeSessions.get(userId));
+  activeSessions.delete(userId);
+}
+
 client.once("ready", async () => {
   console.log(`Logged in as ${client.user.tag}!`);
   loadRegisteredUsers();
@@ -196,9 +224,7 @@ client.on("interactionCreate", async (interaction) => {
       ],
       ephemeral: true,
     });
-  }
-
-  if (commandName === "track") {
+  } else if (commandName === "track") {
     if (!registeredUsers.has(user.id)) {
       await interaction.reply({
         embeds: [
@@ -239,9 +265,7 @@ client.on("interactionCreate", async (interaction) => {
     });
 
     startTracking(user.id);
-  }
-
-  if (commandName === "stop") {
+  } else if (commandName === "stop") {
     if (!activeSessions.has(user.id)) {
       await interaction.reply({
         embeds: [
@@ -255,4 +279,20 @@ client.on("interactionCreate", async (interaction) => {
       });
       return;
     }
-    
+
+    stopTracking(user.id);
+
+    await interaction.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor("#ED4245")
+          .setTitle("🛑 Tracking Stopped")
+          .setDescription("You will no longer receive Grow A Garden stock updates.")
+          .setFooter({ text: footerText }),
+      ],
+      ephemeral: true,
+    });
+  }
+});
+
+client.login(botToken);
