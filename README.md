@@ -1,7 +1,5 @@
 # 🌾 Grow A Garden Tracker Bot
 
-![Grow A Garden](https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Redmi_Logo.svg/1200px-Redmi_Logo.svg.png)
-
 ## 🔴 Overview
 
 Welcome to **Grow A Garden Tracker**, your **fast**, **reliable**, and **aesthetic** Discord bot designed to keep you updated with the latest Grow A Garden stock, cosmetics, honey restocks, and weather changes — all in **real-time**.
