@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { Client, GatewayIntentBits, Partials, EmbedBuilder, REST, Routes, SlashCommandBuilder } = require("discord.js");
 const axios = require("axios");
-const { botToken, guildId } = require("./config");
+const { botToken, fetchIntervalMs, footerText, prefix } = require("./config");
 
 const registeredUsersPath = path.join(__dirname, "registeredUsers.json");
 let registeredUsers = new Set();
@@ -255,3 +255,4 @@ client.on("interactionCreate", async (interaction) => {
       });
       return;
     }
+    
